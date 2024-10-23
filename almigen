@@ -12,29 +12,6 @@ ARCH_LINUX_MIRRORLIST_URL = "https://archlinux.org/mirrorlist/"
 parameters = defaultdict(list)
 outfile = ""
 
-def getopts_parse_options():
-    global parameters
-    global outfile
-
-    optlist, args =  getopt(argv[1:], '46c:p:')
-
-    for o, a in optlist:
-        if o == "-4":
-            parameters["ip_version"].append('4')
-        elif o == "-6":
-            parameters["ip_version"].append('6')
-        elif o == '-c':
-            parameters["country"].append(a)
-        elif o == '-p':
-            for p in str(a).split(','):
-                parameters["protocol"].append(p)
-        else:
-            assert False, "unhandled option"
-
-    if len(args) == 0:
-        outfile = None
-    else:
-        outfile = args[0]
 
 def argparse_parse_options():
     global parameters
@@ -76,8 +53,8 @@ def argparse_parse_options():
 
 
 if __name__ == "__main__":
-
-    # getopts_parse_options()
+    
+    # parse args
     argparse_parse_options()
 
     # send get request
