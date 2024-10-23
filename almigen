@@ -1,0 +1,92 @@
+#!/usr/bin/env python
+
+from getopt import getopt
+from sys import argv
+from requests import get
+from collections import defaultdict
+
+import argparse
+
+ARCH_LINUX_MIRRORLIST_URL = "https://archlinux.org/mirrorlist/"
+
+parameters = defaultdict(list)
+outfile = ""
+
+def getopts_parse_options():
+    global parameters
+    global outfile
+
+    optlist, args =  getopt(argv[1:], '46c:p:')
+
+    for o, a in optlist:
+        if o == "-4":
+            parameters["ip_version"].append('4')
+        elif o == "-6":
+            parameters["ip_version"].append('6')
+        elif o == '-c':
+            parameters["country"].append(a)
+        elif o == '-p':
+            for p in str(a).split(','):
+                parameters["protocol"].append(p)
+        else:
+            assert False, "unhandled option"
+
+    if len(args) == 0:
+        outfile = None
+    else:
+        outfile = args[0]
+
+def argparse_parse_options():
+    global parameters
+    global outfile
+    
+    parser = argparse.ArgumentParser(
+        prog="almigen",
+        description='## Arch Linux CLI Mirrorlist Generator',
+        epilog=""
+    )
+
+    parser.add_argument('-p', '--protocol', help="commata separated list: http,https")
+    parser.add_argument('-c', '--country', help="country code: i.e. US")
+    parser.add_argument('-4', '--ipv4', action='store_true', help="list servers with ipv4 support")
+    parser.add_argument('-6', '--ipv6', action='store_true', help="list servers with ipv6 support")
+    parser.add_argument('outfile', nargs='?', help="file to write the mirror list (if empty, stdout is used)")
+
+    args = parser.parse_args()
+
+    if args.country == None:
+        parser.print_help()
+        print(f"{"\n" * 2}error, invalid args: specify at least a county code")
+        exit()
+
+    if args.ipv4 != None:
+        parameters["ip_version"].append('4')
+    elif args.ipv6 != None:
+        parameters["ip_version"].append('6')
+    elif args.protocol != None:
+        for p in str(args.protocol).split(','):
+            parameters["protocol"].append(p)
+    if args.country != None:
+        parameters["country"].append(args.country) 
+
+    if args.outfile == None:
+        outfile = None
+    else:
+        outfile = args[0]
+
+
+if __name__ == "__main__":
+
+    # getopts_parse_options()
+    argparse_parse_options()
+
+    # send get request
+    mirrorlist_request = get(ARCH_LINUX_MIRRORLIST_URL, params=parameters)
+    
+    # write if positional argument is found
+    # otherwise print to stdout
+    if outfile != None:
+        with open(outfile, "w") as f:
+            f.write(mirrorlist_request.text)
+    else:
+        print(mirrorlist_request.text, end='')
