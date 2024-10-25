@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 from getopt import getopt
-from sys import argv
 from requests import get
 from collections import defaultdict
 
@@ -9,9 +8,8 @@ import argparse
 
 ARCH_LINUX_MIRRORLIST_URL = "https://archlinux.org/mirrorlist/"
 
-parameters = defaultdict(list)
+request_param = defaultdict(list)
 outfile = ""
-
 
 def argparse_parse_options():
     global parameters
@@ -37,14 +35,14 @@ def argparse_parse_options():
         exit()
 
     if args.ipv4 != None:
-        parameters["ip_version"].append('4')
+        request_param["ip_version"].append('4')
     elif args.ipv6 != None:
-        parameters["ip_version"].append('6')
+        request_param["ip_version"].append('6')
     elif args.protocol != None:
         for p in str(args.protocol).split(','):
-            parameters["protocol"].append(p)
+            request_param["protocol"].append(p)
     if args.country != None:
-        parameters["country"].append(args.country) 
+        request_param["country"].append(args.country) 
 
     if args.outfile == None:
         outfile = None
@@ -58,7 +56,7 @@ if __name__ == "__main__":
     argparse_parse_options()
 
     # send get request
-    mirrorlist_request = get(ARCH_LINUX_MIRRORLIST_URL, params=parameters)
+    mirrorlist_request = get(ARCH_LINUX_MIRRORLIST_URL, params=request_param)
     
     # write if positional argument is found
     # otherwise print to stdout
